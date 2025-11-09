@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View for Wallet Transactions -->
+    <record id="view_wallet_transaction_tree" model="ir.ui.view">
+        <field name="name">wallet.transaction.tree</field>
+        <field name="model">wallet.transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Wallet Transactions" decoration-success="transaction_type == 'credit'" decoration-danger="transaction_type == 'debit'">
+                <field name="transaction_date"/>
+                <field name="partner_id"/>
+                <field name="transaction_type"/>
+                <field name="amount" widget="monetary"/>
+                <field name="balance_before" widget="monetary"/>
+                <field name="balance_after" widget="monetary"/>
+                <field name="reference"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-muted="state == 'cancelled'"/>
+                <field name="notification_sent" widget="boolean_toggle"/>
+                <field name="currency_id" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View for Wallet Transactions -->
+    <record id="view_wallet_transaction_form" model="ir.ui.view">
+        <field name="name">wallet.transaction.form</field>
+        <field name="model">wallet.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Wallet Transaction">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="reference"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="transaction_type"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="transaction_date"/>
+                            <field name="balance_before" widget="monetary"/>
+                            <field name="balance_after" widget="monetary"/>
+                            <field name="notification_sent"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                    <group string="Related Records">
+                        <field name="payment_transaction_id"/>
+                        <field name="sale_order_id"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View for Wallet Transactions -->
+    <record id="view_wallet_transaction_search" model="ir.ui.view">
+        <field name="name">wallet.transaction.search</field>
+        <field name="model">wallet.transaction</field>
+        <field name="arch" type="xml">
+            <search string="Search Wallet Transactions">
+                <field name="partner_id"/>
+                <field name="reference"/>
+                <field name="transaction_date"/>
+                <filter string="Credits" name="credits" domain="[('transaction_type', '=', 'credit')]"/>
+                <filter string="Debits" name="debits" domain="[('transaction_type', '=', 'debit')]"/>
+                <filter string="Today" name="today" domain="[('transaction_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" name="this_month" domain="[('transaction_date', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'transaction_type'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'transaction_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Wallet Transactions -->
+    <record id="action_wallet_transaction" model="ir.actions.act_window">
+        <field name="name">Wallet Transactions</field>
+        <field name="res_model">wallet.transaction</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_wallet_transaction_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No wallet transactions yet
+            </p>
+            <p>
+                Wallet transactions will appear here when customers fund or use their wallets.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_wallet_root" name="Wallet Management" sequence="50"/>
+    
+    <menuitem id="menu_wallet_transactions" 
+              name="Transactions" 
+              parent="menu_wallet_root" 
+              action="action_wallet_transaction" 
+              sequence="10"/>
+</odoo>

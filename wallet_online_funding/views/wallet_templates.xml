@@ -1,0 +1,31 @@
+<odoo>
+    <template id="wallet_fund_form" name="Wallet Funding Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <h2>Fund Your Wallet</h2>
+                <form action="/wallet/fund/submit" method="post">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" class="form-control" required="true"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (₦)</label>
+                        <input type="number" name="amount" class="form-control" required="true"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Proceed to Payment</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="wallet_error_page" name="Wallet Error Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5 text-center">
+                <h3>Oops! Something went wrong.</h3>
+                <p t-esc="error"/>
+                <a href="/wallet/fund" class="btn btn-secondary mt-3">Try Again</a>
+            </div>
+        </t>
+    </template>
+</odoo>
+

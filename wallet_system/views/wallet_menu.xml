@@ -1,0 +1,50 @@
+<odoo>
+    <!-- Main menu group for Wallet System -->
+    <menuitem id="wallet_system_main_menu"
+              name="Wallet System"
+              sequence="10"/>
+
+    <!-- List (previously 'tree') view for wallets -->
+    <record id="view_wallet_list" model="ir.ui.view">
+        <field name="name">wallet.system.list</field>
+        <field name="model">wallet.system</field>
+        <field name="arch" type="xml">
+            <list string="Wallets">
+                <field name="customer_id"/>
+                <field name="balance"/>
+                <field name="last_transaction_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view for wallets -->
+    <record id="view_wallet_form" model="ir.ui.view">
+        <field name="name">wallet.system.form</field>
+        <field name="model">wallet.system</field>
+        <field name="arch" type="xml">
+            <form string="Wallet">
+                <sheet>
+                    <group>
+                        <field name="customer_id"/>
+                        <field name="balance"/>
+                        <field name="last_transaction_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wallet views -->
+    <record id="action_wallet_system" model="ir.actions.act_window">
+        <field name="name">Wallets</field>
+        <field name="res_model">wallet.system</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu item to open Wallet list -->
+    <menuitem id="wallet_system_wallet_menu"
+              name="Wallets"
+              parent="wallet_system_main_menu"
+              action="action_wallet_system"/>
+</odoo>
+

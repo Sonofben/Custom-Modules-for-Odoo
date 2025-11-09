@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Email Template for Wallet Transactions -->
+    <record id="wallet_transaction_email_template" model="mail.template">
+        <field name="name">Wallet Transaction Notification</field>
+        <field name="model_id" ref="model_wallet_transaction"/>
+        <field name="subject">
+            Wallet {{ 'Credit' if object.transaction_type == 'credit' else 'Debit' }} - {{ object.reference }}
+        </field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="body_html" type="html">
+<![CDATA[
+<table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #555555; width: 100%; border-collapse:separate;">
+    <tr>
+        <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border: 1px solid #e5e5e5; margin-top: 10px;">
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr>
+                                <td valign="middle">
+                                    <span style="font-size: 10px;">Wallet Transaction</span><br/>
+                                    <span style="font-size: 20px; font-weight: bold;">
+                                        % if object.transaction_type == 'credit':
+                                            Wallet Credited ✓
+                                        % else:
+                                            Wallet Debited
+                                        % endif
+                                    </span>
+                                </td>
+                                <td valign="middle" align="right">
+                                    <img src="/logo.png" style="padding: 0px; margin: 0px; height: auto; width: 80px;" alt="${object.company_id.name}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="text-align:center;">
+                                    <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr>
+                                <td valign="top" style="font-size: 13px;">
+                                    <div>
+                                        Dear ${object.partner_id.name},<br/><br/>
+                                        
+                                        % if object.transaction_type == 'credit':
+                                            Your wallet has been successfully credited with <strong>${object.currency_id.symbol}${object.amount}</strong>.
+                                        % else:
+                                            <strong>${object.currency_id.symbol}${object.amount}</strong> has been debited from your wallet.
+                                        % endif
+                                        <br/><br/>
+                                        
+                                        <strong>Transaction Details:</strong><br/>
+                                        <ul style="list-style: none; padding-left: 0;">
+                                            <li><strong>Reference:</strong> ${object.reference}</li>
+                                            <li><strong>Date:</strong> ${format_datetime(object.transaction_date, dt_format='medium')}</li>
+                                            <li><strong>Amount:</strong> ${object.currency_id.symbol}${object.amount}</li>
+                                            <li><strong>Balance Before:</strong> ${object.currency_id.symbol}${object.balance_before}</li>
+                                            <li><strong>New Balance:</strong> <strong style="color: #28a745;">${object.currency_id.symbol}${object.balance_after}</strong></li>
+                                            % if object.description:
+                                                <li><strong>Description:</strong> ${object.description}</li>
+                                            % endif
+                                        </ul>
+                                        
+                                        <br/>
+                                        You can view all your transactions in your account portal.
+                                        <br/><br/>
+                                        
+                                        Thank you for choosing us!<br/>
+                                        <br/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:center;">
+                                    <a href="/my/wallet" style="padding: 10px 20px; background-color: #875A7B; color: #fff; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
+                                        View My Wallet
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr>
+                                <td valign="middle" align="left" style="color: #555; font-size: 12px;">
+                                    ${object.company_id.name}<br/>
+                                    % if object.company_id.phone:
+                                        Tel: ${object.company_id.phone}<br/>
+                                    % endif
+                                    % if object.company_id.email:
+                                        Email: ${object.company_id.email}
+                                    % endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+]]>
+        </field>
+    </record>
+
+    <!-- Email Template for Low Balance Warning -->
+    <record id="wallet_low_balance_email_template" model="mail.template">
+        <field name="name">Wallet Low Balance Warning</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Wallet Low Balance Alert</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+<![CDATA[
+<div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2>Low Wallet Balance</h2>
+    <p>Dear ${object.name},</p>
+    <p>Your wallet balance is running low.</p>
+    <p><strong>Current Balance: ${object.currency_id.symbol}${object.wallet_balance}</strong></p>
+    <p>Please top up your wallet to continue enjoying our services.</p>
+    <a href="/my/wallet/topup" style="padding: 10px 20px; background-color: #875A7B; color: #fff; text-decoration: none; border-radius: 5px;">
+        Top Up Now
+    </a>
+</div>
+]]>
+        </field>
+    </record>
+</odoo>
