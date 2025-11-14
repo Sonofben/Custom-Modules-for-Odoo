@@ -7,9 +7,12 @@ import requests
 _logger = logging.getLogger(__name__)
 
 # For quick setup you can keep the sandbox link, but in production you'll call Flutterwave to create a payment
-FLW_DIRECT_LINK = "https://sandbox.flutterwave.com/pay/9dowbcfw1iwt"
+ICPSudo = request.env['ir.config_parameter'].sudo()
+FLW_DIRECT_LINK = ICPSudo.get_param('wallet_online_funding.flw_direct_link')
+FLW_SECRET_KEY = ICPSudo.get_param('wallet_online_funding.flw_secret_key')
+FLW_SECRET_HASH = ICPSudo.get_param('wallet_online_funding.flw_secret_hash')
 # Put secret in ir.config_parameter in production:
-FLW_SECRET_KEY = None
+# FLW_SECRET_KEY is now fetched from ir.config_parameter
 
 class WalletOnlineFundingController(http.Controller):
 
@@ -35,12 +38,30 @@ class WalletOnlineFundingController(http.Controller):
         # find or create partner
         Partner = request.env['res.partner'].sudo()
         partner = None
-        if email:
-            partner = Partner.search([('email','=',email)], limit=1)
-        if not partner and phone:
-            partner = Partner.search([('phone','=',phone)], limit=1)
+        
+        # 1. Try to find logged-in user's partner
+        if request.env.user.partner_id.id != request.env.ref('base.public_partner').id:
+            partner = request.env.user.partner_id
+        
+        # 2. If not logged in, search by email/phone
         if not partner:
-            partner = Partner.create({'name': email or phone or 'Customer', 'email': email or False, 'phone': phone or False, 'customer_rank': 1})
+            domain = []
+            if email:
+                domain.append(('email', '=', email))
+            if phone:
+                domain.append(('phone', '=', phone))
+            
+            if domain:
+                partner = Partner.search(domain, limit=1)
+        
+        # 3. Create if not found
+        if not partner:
+            partner = Partner.create({
+                'name': email or phone or 'Customer', 
+                'email': email or False, 
+                'phone': phone or False, 
+                'customer_rank': 1
+            })
 
         # create transaction (pending)
         seq = request.env['ir.sequence'].sudo().next_by_code('wallet_online.tx.seq') or str(partner.id)
@@ -94,6 +115,14 @@ class WalletOnlineFundingController(http.Controller):
 
         # verify with Flutterwave if possible (recommended)
         verified = False
+        # 1. Webhook Signature Verification (CRITICAL SECURITY FIX)
+        signature = request.httprequest.headers.get('verif-hash')
+        if FLW_SECRET_HASH and signature != FLW_SECRET_HASH:
+            _logger.error("Webhook signature mismatch. Expected %s, got %s", FLW_SECRET_HASH, signature)
+            return {'status':'error', 'message':'Invalid signature'}
+
+        # 2. Transaction Verification (Good Practice)
+        verified = False
         if FLW_SECRET_KEY:
             try:
                 headers = {'Authorization': f'Bearer {FLW_SECRET_KEY}'}
@@ -115,7 +144,7 @@ class WalletOnlineFundingController(http.Controller):
 
         # mark transaction done and apply
         tx.sudo().write({'status':'done'})
-        # call apply (create() will apply on create; we call apply method manually)
+        # call apply (now idempotent)
         try:
             tx._apply_funding()
         except Exception as e:

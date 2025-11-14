@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- System Parameters for Flutterwave Configuration -->
+    <record id="flw_secret_key_param" model="ir.config_parameter">
+        <field name="key">wallet_online_funding.flw_secret_key</field>
+        <field name="value"></field>
+    </record>
+    <record id="flw_secret_hash_param" model="ir.config_parameter">
+        <field name="key">wallet_online_funding.flw_secret_hash</field>
+        <field name="value"></field>
+    </record>
+    <record id="flw_direct_link_param" model="ir.config_parameter">
+        <field name="key">wallet_online_funding.flw_direct_link</field>
+        <field name="value">https://sandbox.flutterwave.com/pay/9dowbcfw1iwt</field>
+    </record>
+
+    <!-- Sequence for Wallet Transactions -->
+    <record id="seq_wallet_transaction" model="ir.sequence">
+        <field name="name">Wallet Transaction Reference</field>
+        <field name="code">wallet_online.tx.seq</field>
+        <field name="prefix">WTX</field>
+        <field name="padding">6</field>
+    </record>
+</odoo>

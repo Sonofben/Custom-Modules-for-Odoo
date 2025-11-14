@@ -7,7 +7,8 @@
     'depends': ['base', 'contacts','payment', 'mail', 'website'],
     'data': [
         'data/mail_templates.xml',
-        'views/wallet_templates.xml',
+        'data/wallet_data.xml',
+        'views/wallet_views.xml',
     ],
     'installable': True,
     'application': False,
